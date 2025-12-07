@@ -30,8 +30,11 @@ const infrastructureDatabaseModule = TypeOrmModule.forRootAsync({
 
 import { WatersModule } from './waters/waters.module';
 
+import { RegionsModule } from './regions/regions.module';
+
 @Module({
   imports: [
+    RegionsModule,
     WatersModule,
     ConfigModule.forRoot({
       isGlobal: true,

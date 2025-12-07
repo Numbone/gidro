@@ -33,7 +33,7 @@ export class WaterRelationalRepository implements WaterRepository {
   }: {
     paginationOptions: IPaginationOptions;
     filters?: FindAllWatersDto;
-  }): Promise<Water[]> {
+  }): Promise<{ data: Water[]; hasNextPage: boolean }> {
     const queryBuilder = this.waterRepository.createQueryBuilder('water');
 
     if (filters?.search) {
@@ -110,13 +110,24 @@ export class WaterRelationalRepository implements WaterRepository {
       queryBuilder.orderBy('water.priority', 'DESC');
     }
 
+    // Получаем общее количество записей ДО применения пагинации
+    const total = await queryBuilder.getCount();
+
+    // Применяем пагинацию
     queryBuilder
-      .skip((paginationOptions.page - 1) * paginationOptions.limit)
+      .skip(paginationOptions.page * paginationOptions.limit) // если page начинается с 0
       .take(paginationOptions.limit);
 
     const entities = await queryBuilder.getMany();
 
-    return entities.map((entity) => WaterMapper.toDomain(entity));
+    // Проверяем, есть ли следующая страница
+    const hasNextPage =
+      (paginationOptions.page + 1) * paginationOptions.limit < total;
+
+    return {
+      data: entities.map((entity) => WaterMapper.toDomain(entity)),
+      hasNextPage,
+    };
   }
 
   async findById(id: Water['id']): Promise<NullableType<Water>> {

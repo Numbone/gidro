@@ -15,7 +15,7 @@ export abstract class WaterRepository {
   }: {
     paginationOptions: IPaginationOptions;
     filters?: FindAllWatersDto;
-  }): Promise<Water[]>;
+  }): Promise<{ data: Water[]; hasNextPage: boolean }>;
 
   abstract findById(id: Water['id']): Promise<NullableType<Water>>;
 

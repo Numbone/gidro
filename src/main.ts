@@ -14,7 +14,7 @@ import { AllConfigType } from './config/config.type';
 import { ResolvePromisesInterceptor } from './utils/serializer.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule);
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const configService = app.get(ConfigService<AllConfigType>);
 
@@ -28,7 +28,44 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
-  app.useGlobalPipes(new ValidationPipe(validationOptions));
+  app.enableCors({
+    origin: (origin, callback) => {
+      // Разрешаем все origins в development
+      if (process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        // В production разрешаем только определенные домены
+        const allowedOrigins = [
+          process.env.FRONTEND_DOMAIN,
+          process.env.BACKEND_DOMAIN,
+        ].filter(Boolean);
+
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Accept',
+      'x-custom-lang',
+      'Authorization',
+      'Cookie',
+      'Origin',
+      'X-Requested-With',
+      'Cache-Control',
+      'Pragma',
+    ],
+    exposedHeaders: ['Set-Cookie', 'Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    maxAge: 86400
+  });
+  // app.useGlobalPipes(new ValidationPipe(validationOptions));
   app.useGlobalInterceptors(
     // ResolvePromisesInterceptor is used to resolve promises in responses because class-transformer can't do it
     // https://github.com/typestack/class-transformer/issues/549

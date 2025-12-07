@@ -12,8 +12,11 @@ import appConfig from '../../../config/app.config';
 
 import { WaterSeedModule } from './water/water-seed.module';
 
+import { RegionSeedModule } from './region/region-seed.module';
+
 @Module({
   imports: [
+    RegionSeedModule,
     WaterSeedModule,
     RoleSeedModule,
     StatusSeedModule,

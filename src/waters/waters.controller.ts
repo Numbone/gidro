@@ -1,17 +1,15 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
+  Get,
+  Param,
+  Patch,
+  Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { WatersService } from './waters.service';
-import { CreateWaterDto } from './dto/create-water.dto';
-import { UpdateWaterDto } from './dto/update-water.dto';
+import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -19,14 +17,15 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { Water } from './domain/water';
-import { AuthGuard } from '@nestjs/passport';
 import {
   InfinityPaginationResponse,
   InfinityPaginationResponseDto,
 } from '../utils/dto/infinity-pagination-response.dto';
-import { infinityPagination } from '../utils/infinity-pagination';
+import { Water } from './domain/water';
+import { CreateWaterDto } from './dto/create-water.dto';
 import { FindAllWatersDto } from './dto/find-all-waters.dto';
+import { UpdateWaterDto } from './dto/update-water.dto';
+import { WatersService } from './waters.service';
 
 @ApiTags('Waters')
 @ApiBearerAuth()
@@ -59,16 +58,16 @@ export class WatersController {
       limit = 50;
     }
 
-    return infinityPagination(
-      await this.watersService.findAllWithPagination({
-        paginationOptions: {
-          page,
-          limit,
-        },
-        filters: query,
-      }),
-      { page, limit },
-    );
+    const result = await this.watersService.findAllWithPagination({
+      paginationOptions: {
+        page,
+        limit,
+      },
+      filters: query,
+    });
+
+    // Просто возвращаем результат напрямую
+    return result;
   }
 
   @Get(':id')
